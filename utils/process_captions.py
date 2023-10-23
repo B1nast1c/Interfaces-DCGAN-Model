@@ -18,7 +18,7 @@ def captions_per_image():
         file_data = file_data.split('\n')
         captions_file.close()
 
-        for index in range(3):
+        for index in range(1):
             single_caption = file_data[index].lower()
             captions.append(single_caption)
             single_caption = single_caption.split()

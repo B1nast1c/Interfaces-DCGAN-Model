@@ -110,4 +110,4 @@ def train(train_dataset, epochs):
 
 def train_gan():
     train_dataset = split_data.shuffle_data()
-    train(list(train_dataset.as_numpy_iterator()), 50)
+    train(list(train_dataset.as_numpy_iterator()), 100)

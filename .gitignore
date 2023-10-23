@@ -3,3 +3,4 @@ __pycache__/
 files/dataset/
 files/captions/
 model/config/
+model/results/
