@@ -6,3 +6,4 @@ model/config/
 model/results/
 model/epoch_images/
 model/train_results/
+model/weights_train/
