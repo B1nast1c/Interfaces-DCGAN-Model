@@ -3,6 +3,9 @@ from keras.models import Model
 from keras.initializers import RandomNormal
 from keras.layers import Input, Embedding, Dense, Reshape, Concatenate, LeakyReLU, Conv2D, BatchNormalization, Dropout, Flatten
 
+con_label = Input(shape=(1,))
+inp_img = Input(shape=(128, 128, 3))
+
 
 def label_condition_disc(in_shape=(128, 128, 3), n_classes=len(common.BASE_CLASS), embedding_dim=100):
     con_label = Input(shape=(1,))

@@ -4,3 +4,5 @@ files/dataset/
 files/captions/
 model/config/
 model/results/
+model/epoch_images/
+model/train_results/

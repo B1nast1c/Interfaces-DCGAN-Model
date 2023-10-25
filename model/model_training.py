@@ -12,13 +12,10 @@ from utils import common
 
 conditional_gen = generator.gan_generator()
 conditional_disc = discriminator.gan_discriminator()
-learning_rate = 0.0002
 num_examples_to_generate = 5
 generator_optimizer = Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.999)
 discriminator_optimizer = Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.999)
 seed = tf.random.normal([num_examples_to_generate, common.LATENT_DIM])
-embeddings = conditional_gen.layers[3]
-weights = embeddings.get_weights()[0]
 binary_cross_entropy = BinaryCrossentropy()
 
 
@@ -85,11 +82,8 @@ def generate_and_save_images(model, epoch, test_input):
     # fig = plt.figure(figsize=(8, 8))
 
     for i in range(predictions.shape[0]):
-        plt.subplot(5, 5, i+1)
         pred = (predictions[i, :, :, :] + 1) * 127.5
         pred = np.array(pred)
-        plt.imshow(pred.astype(np.uint8))
-        plt.axis('off')
 
     plt.savefig(common.IMAGE_EPOCHS_LOCATION +
                 '/image_at_epoch_{:d}.png'.format(epoch))
@@ -109,7 +103,7 @@ def train(dataset, epochs):
         conditional_gen.save_weights(
             common.EPOCHS_LOCATION + '/gen_' + str(epoch)+'.keras')
         conditional_disc.save_weights(
-            common.EPOCHS_LOCATION + '/gen_' + str(epoch)+'.keras')
+            common.EPOCHS_LOCATION + '/disc_' + str(epoch)+'.keras')
         print('Time for epoch {} is {} sec'.format(
             epoch + 1, time.time()-start))
 
@@ -117,6 +111,6 @@ def train(dataset, epochs):
 
 
 def label_gen(n_classes):
-    lab = tf.random.uniform((1,), minval=0, maxval=10,
+    lab = tf.random.uniform((1,), minval=0, maxval=n_classes,
                             dtype=tf.dtypes.int32, seed=None, name=None)
-    return tf.repeat(lab, [25], axis=None, name=None)
+    return tf.repeat(lab, [num_examples_to_generate], axis=None, name=None)

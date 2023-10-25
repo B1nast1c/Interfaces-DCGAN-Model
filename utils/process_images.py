@@ -109,7 +109,7 @@ def extract_contour(image):
     copy = np.ones_like(original) * 255
 
     for box in boxes:
-        cv2.rectangle(copy, tup(box[0]), tup(box[1]), (0, 0, 0), 3)
+        cv2.rectangle(copy, tup(box[0]), tup(box[1]), (0, 0, 0), 10)
     copy = cv2.resize(copy, dsize=(
         common.GENERATE_SQUARE, common.GENERATE_SQUARE))
 
