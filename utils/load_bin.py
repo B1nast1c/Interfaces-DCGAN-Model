@@ -2,8 +2,8 @@ import numpy as np
 from utils import common
 
 
-def load_captions():
-    bin_captions = np.load(common.BIN_LOCATION + '/captions.npy')
+def load_labels():
+    bin_captions = np.load(common.BIN_LOCATION + '/labels.npy')
     return bin_captions
 
 

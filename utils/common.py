@@ -29,40 +29,28 @@ BASE_CLASS = [
     'blog'
 ]
 
-KEYWORDS = [
-    ['login', 'authentication', 'access', 'identification', 'session'],
-    ['profile', 'personal', 'user', 'biography', 'main'],
-    ['email', 'inbox', 'send', 'message', 'imbox', 'e-mail'],
-    ['chat', 'message', 'chatting'],
-    ['blog', 'journal', 'diary', 'weblog', 'e-diary'],
-]
+KEYWORDS = {
+    'login': ['authentication', 'access', 'identification', 'session'],
+    'profile': ['personal', 'user', 'biography', 'main'],
+    'e-mail': ['email', 'inbox', 'send', 'message', 'imbox', 'e-mail'],
+    'chat': ['message', 'chatting'],
+    'blog': ['journal', 'diary', 'weblog', 'e-diary'],
+}
 
 GAN_MODEL_LOCATION = './model/config'
 IMAGES_LOCATION = './files/dataset/images'
-CAPTIONS_LOCATION = './files/captions'
-SINGLE_CAPTIONS_LOCATION = './files/dataset/captions'
 WORD_MODEL_LOCATION = './files'
 BIN_LOCATION = './files/dataset/binary'
+EPOCHS_LOCATION = './model/weights_train'
+IMAGE_EPOCHS_LOCATION = './model/epoch_images'
 RESULTS_LOCATION = './model/results'
 ALLOWED_EXTENSIONS = ('.jpg', '.jpeg')
 
-GENERATOR_RES_FACTOR = 5  # (1=32, 2=64, 3=96, 4=128 ...)
+GENERATOR_RES_FACTOR = 4  # (1=32, 2=64, 3=96, 4=128 ...)
 GENERATE_SQUARE = 32 * GENERATOR_RES_FACTOR
 CHANNELS = 3
-SEED_SIZE = 100
-EMBED_SIZE = 300
-EPOCHS = 50
+LATENT_DIM = 100
+EMBED_SIZE = 100
+EPOCHS = 150
 BATCH_SIZE = 16
-BUFFER_SIZE = 512
-WIDTH = 480
-HEIGHT = 270
-PREVIEW_ROWS = 1
-PREVIEW_COLS = 3
-PREVIEW_MARGIN = 5
-
-
-def time_shower(sec_elapsed):
-    h = int(sec_elapsed / (60 * 60))
-    m = int((sec_elapsed % (60 * 60)) / 60)
-    s = sec_elapsed % 60
-    return "{}:{:>02}:{:>05.2f}".format(h, m, s)
+BUFFER_SIZE = 10000

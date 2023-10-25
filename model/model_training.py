@@ -1,113 +1,122 @@
-import os
 import time
-from model import generator, discriminator
 import numpy as np
 import tensorflow as tf
-import test_data_processing
-from utils import common, split_data
+import matplotlib.pyplot as plt
+from model import generator, discriminator
+from keras.losses import BinaryCrossentropy
 from keras.optimizers import Adam
+from utils import common
 
-cross_entropy = tf.keras.losses.BinaryCrossentropy()
-save_images_npy, save_images_captions, save_images_embeddings = test_data_processing.test_data_splitting()
-channels = common.CHANNELS
-image_shape = (common.GENERATE_SQUARE, common.GENERATE_SQUARE, channels)
+# PARAMETROS
+# ----------------------------------------------------------------
 
-generator_optimizer = Adam(learning_rate=2.0e-4, beta_1=0.5)
-discriminator_optimizer = Adam(learning_rate=2.0e-4, beta_1=0.5)
-
-generator_item = generator.create_generator(
-    common.SEED_SIZE, common.EMBED_SIZE, channels)
-discriminator_item = discriminator.create_discriminator(
-    image_shape, common.EMBED_SIZE)
-
-
-def generator_loss(fake_output):
-    return cross_entropy(tf.ones_like(fake_output), fake_output)
+conditional_gen = generator.gan_generator()
+conditional_disc = discriminator.gan_discriminator()
+learning_rate = 0.0002
+num_examples_to_generate = 5
+generator_optimizer = Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.999)
+discriminator_optimizer = Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.999)
+seed = tf.random.normal([num_examples_to_generate, common.LATENT_DIM])
+embeddings = conditional_gen.layers[3]
+weights = embeddings.get_weights()[0]
+binary_cross_entropy = BinaryCrossentropy()
 
 
-def discriminator_loss(real_image_real_text, fake_image_real_text, real_image_fake_text):
-    real_loss = cross_entropy(tf.random.uniform(
-        real_image_real_text.shape, 0.8, 1.0), real_image_real_text)
-    fake_loss = (cross_entropy(tf.random.uniform(fake_image_real_text.shape, 0.0, 0.2), fake_image_real_text) +
-                 cross_entropy(tf.random.uniform(real_image_fake_text.shape, 0.0, 0.2), real_image_fake_text))/2
+def generator_loss(label, fake_output):
+    gen_loss = binary_cross_entropy(label, fake_output)
+    return gen_loss
 
-    total_loss = real_loss + fake_loss
-    return total_loss
+
+def discriminator_loss(label, output):
+    disc_loss = binary_cross_entropy(label, output)
+    return disc_loss
+
+# ----------------------------------------------------------------
 
 
 @tf.function
-def train_step(images, captions, fake_captions):
-    seed = tf.random.normal(
-        [common.BATCH_SIZE, common.SEED_SIZE], dtype=tf.float32)
+def train_step(images, target):
+    noise = tf.random.normal([target.shape[0], common.LATENT_DIM])
 
-    with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
-        generated_images = generator_item((seed, captions), training=True)
-        real_image_real_text = discriminator_item(
-            (images, captions), training=True)
-        real_image_fake_text = discriminator_item(
-            (images, fake_captions), training=True)
-        fake_image_real_text = discriminator_item(
-            (generated_images, captions), training=True)
+    with tf.GradientTape() as disc_tape1:
+        generated_images = conditional_gen([noise, target], training=True)
+        real_output = conditional_disc([images, target], training=True)
+        real_targets = tf.ones_like(real_output)
+        disc_loss1 = discriminator_loss(real_targets, real_output)
 
-        gen_loss = generator_loss(fake_image_real_text)
-        disc_loss = discriminator_loss(
-            real_image_real_text, fake_image_real_text, real_image_fake_text)
+    # Calculo de las gradientes para las etiquetas reales
+    gradients_of_disc1 = disc_tape1.gradient(
+        disc_loss1, conditional_disc.trainable_variables)
 
-        gradients_of_generator = gen_tape.gradient(
-            gen_loss, generator_item.trainable_variables)
-        gradients_of_discriminator = disc_tape.gradient(
-            disc_loss, discriminator_item.trainable_variables)
+    # parameters optimization for discriminator for real labels
+    discriminator_optimizer.apply_gradients(
+        zip(gradients_of_disc1, conditional_disc.trainable_variables))
 
-        generator_optimizer.apply_gradients(zip(
-            gradients_of_generator, generator_item.trainable_variables))
-        discriminator_optimizer.apply_gradients(zip(
-            gradients_of_discriminator,
-            discriminator_item.trainable_variables))
-    return gen_loss, disc_loss
+    # Entrenar discriminador con etiquetas erróneas
+    with tf.GradientTape() as disc_tape2:
+        fake_output = conditional_disc(
+            [generated_images, target], training=True)
+        fake_targets = tf.zeros_like(fake_output)
+        disc_loss2 = discriminator_loss(fake_targets, fake_output)
+
+    gradients_of_disc2 = disc_tape2.gradient(
+        disc_loss2, conditional_disc.trainable_variables)
+
+    discriminator_optimizer.apply_gradients(zip(gradients_of_disc2,
+                                                conditional_disc.trainable_variables))
+
+    # Entrenar discriminador con etiquetas reales
+    with tf.GradientTape() as gen_tape:
+        generated_images = conditional_gen([noise, target], training=True)
+        fake_output = conditional_disc(
+            [generated_images, target], training=True)
+        real_targets = tf.ones_like(fake_output)
+        gen_loss = generator_loss(real_targets, fake_output)
+
+    gradients_of_gen = gen_tape.gradient(
+        gen_loss, conditional_gen.trainable_variables)
+    generator_optimizer.apply_gradients(zip(gradients_of_gen,
+                                            conditional_gen.trainable_variables))
 
 
-def train(train_dataset, epochs):
-    ''' fixed_seed = np.random.normal(0, 1, (common.PREVIEW_ROWS * common.PREVIEW_COLS,
-                                        common.SEED_SIZE))
-    fixed_embed = save_images_embeddings '''
+def generate_and_save_images(model, epoch, test_input):
+    labels = label_gen(n_classes=len(common.BASE_CLASS))
+    predictions = model([test_input, labels], training=False)
+    # fig = plt.figure(figsize=(8, 8))
 
-    start = time.time()
+    for i in range(predictions.shape[0]):
+        plt.subplot(5, 5, i+1)
+        pred = (predictions[i, :, :, :] + 1) * 127.5
+        pred = np.array(pred)
+        plt.imshow(pred.astype(np.uint8))
+        plt.axis('off')
 
+    plt.savefig(common.IMAGE_EPOCHS_LOCATION +
+                '/image_at_epoch_{:d}.png'.format(epoch))
+
+
+def train(dataset, epochs):
     for epoch in range(epochs):
-        print("Epoch start...")
-        epoch_start = time.time()
+        start = time.time()
+        i = 0
+        # D_loss_list, G_loss_list = [], []
+        for image_batch, target in dataset:
+            i += 1
+            train_step(image_batch, target)
+        print(epoch)
+        generate_and_save_images(conditional_gen, epoch + 1, seed)
 
-        gen_loss_list = []
-        disc_loss_list = []
+        conditional_gen.save_weights(
+            common.EPOCHS_LOCATION + '/gen_' + str(epoch)+'.keras')
+        conditional_disc.save_weights(
+            common.EPOCHS_LOCATION + '/gen_' + str(epoch)+'.keras')
+        print('Time for epoch {} is {} sec'.format(
+            epoch + 1, time.time()-start))
 
-        for batch in train_dataset[:-1]:
-            train_batch = batch['images']
-            caption_batch = batch['embeddings']
-
-            fake_caption_batch = np.copy(caption_batch)
-            np.random.shuffle(fake_caption_batch)
-
-            t = train_step(train_batch, caption_batch, fake_caption_batch)
-            gen_loss_list.append(t[0])
-            disc_loss_list.append(t[1])
-
-        g_loss = sum(gen_loss_list) / len(gen_loss_list)
-        d_loss = sum(disc_loss_list) / len(disc_loss_list)
-
-        epoch_elapsed = time.time()-epoch_start
-        print(
-            f'Epoch {epoch+1}, gen loss={g_loss},disc loss={d_loss}, {common.time_shower(epoch_elapsed)}')
-        # save_images(epoch,fixed_seed,fixed_embed)
-
-        generator_item.save(os.path.join(
-            common.GAN_MODEL_LOCATION, "generator.keras"))
-        discriminator_item.save(os.path.join(
-            common.GAN_MODEL_LOCATION, "discriminator.keras"))
-
-    elapsed = time.time()-start
-    print('Training time:', common.time_shower(elapsed))
+    generate_and_save_images(conditional_gen, epochs, seed)
 
 
-def train_gan():
-    train_dataset = split_data.shuffle_data()
-    train(list(train_dataset.as_numpy_iterator()), 100)
+def label_gen(n_classes):
+    lab = tf.random.uniform((1,), minval=0, maxval=10,
+                            dtype=tf.dtypes.int32, seed=None, name=None)
+    return tf.repeat(lab, [25], axis=None, name=None)

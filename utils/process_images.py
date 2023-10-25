@@ -115,8 +115,6 @@ def extract_contour(image):
 
     return copy
 
-# Carga TODAS las imagenes
-
 
 def load_and_scale_images():
     images = []
@@ -131,35 +129,13 @@ def load_and_scale_images():
 
 
 def save_images():
-    training_data = load_and_scale_images()
+    x_data = load_and_scale_images()
+
+    print(x_data.shape)
+
     np.save(common.BIN_LOCATION + '/images.npy',
-            training_data, allow_pickle=True)
+            x_data, allow_pickle=True)
 
 
-def get_images_dataset():
-    counter = 0
-    bin_images = load_bin.load_images()
-    train_images_bin, test_images_bin = [], []
-    indexes = []
-    images = os.listdir(IMG_DIR_PATH)
-
-    for single in common.BASE_CLASS:
-        indexes.append(len([item for item in images if single in item]))
-
-    for index in indexes:
-        test_index = int(index*0.25) - 1
-        test_images = bin_images[counter: counter + test_index]
-        test_images_bin.extend(test_images)
-        train_images = bin_images[counter + test_index: counter + index]
-        train_images_bin.extend(train_images)
-        counter += index
-
-    test_images_bin = np.array(test_images_bin)
-
-    train_images_bin = np.array(train_images_bin)
-    train_images_bin = (train_images_bin.astype(np.float32) - 127.5) / 127.5
-    train_images_bin = np.clip(train_images_bin, -1, 1)
-
-    print(train_images_bin.shape)
-
-    return train_images_bin, test_images_bin
+def process_images():
+    save_images()
