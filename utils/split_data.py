@@ -1,9 +1,17 @@
 import os
+import tensorflow as tf
 import numpy as np
 from tensorflow import data
-from utils import load_bin, common, process_images
+from utils import load_bin, common
 
 IMG_DIR_PATH = common.IMAGES_LOCATION
+test_size = 0.25
+
+
+@tf.function
+def normalization(tensor):
+    tensor = tf.subtract(tf.divide(tensor, 127.5), 1)
+    return tensor
 
 
 def shuffle_data(x_train, y_train):
@@ -12,42 +20,23 @@ def shuffle_data(x_train, y_train):
     return train_dataset
 
 
-def save_dataset(image_dataset, file_name):
-    np.save(common.BIN_LOCATION + '/' + file_name,
-            image_dataset, allow_pickle=True)
+def save_dataset(dataset, filename):
+    np.save(f'{common.BIN_DATA_LOCATION}{filename}.npy',
+            dataset, allow_pickle=True)
 
 
-def load_dataset():
-    counter = 0
-    bin_images = load_bin.load_images()
-    bin_labels = load_bin.load_labels()
-    train_images_bin, test_images_bin, train_labels_bin, test_labels_bin = [], [], [], []
-    indexes = []
-    images = os.listdir(IMG_DIR_PATH)
+def split_dataset():
+    bin_images = load_bin.load_data('images')
+    bin_labels = load_bin.load_data('labels')
+    num_test = int(len(bin_images) * test_size)
 
-    for single in common.BASE_CLASS:
-        indexes.append(len([item for item in images if single in item]))
-
-    for index in indexes:
-        test_index = int(index*0.25) - 1
-
-        test_images = bin_images[counter: counter + test_index]
-        test_images_bin.extend(test_images)
-        train_images = bin_images[counter + test_index: counter + index]
-        train_images_bin.extend(train_images)
-
-        test_labels = bin_labels[counter: counter + test_index]
-        test_labels_bin.extend(test_labels)
-        train_labels = bin_labels[counter + test_index: counter + index]
-        train_labels_bin.extend(train_labels)
-
-        counter += index
+    train_images_bin = bin_images[num_test:]
+    test_images_bin = bin_images[:num_test]
+    train_labels_bin = bin_labels[num_test:]
+    test_labels_bin = bin_labels[:num_test]
 
     test_images_bin = np.array(test_images_bin)
     train_images_bin = np.array(train_images_bin)
-    train_images_bin = (train_images_bin.astype(np.float32) - 127.5) / 127.5
-    train_images_bin = np.clip(train_images_bin, -1, 1)
-
     test_labels_bin = np.array(test_labels_bin)
     train_labels_bin = np.array(train_labels_bin)
 
@@ -56,9 +45,9 @@ def load_dataset():
     save_dataset(train_labels_bin, 'labels_train.npy')
     save_dataset(test_labels_bin, 'labels_test.npy')
 
-    print(train_images_bin.shape)
-    print(test_images_bin.shape)
-    print(train_labels_bin.shape)
-    print(test_labels_bin.shape)
+    print('Train images shape:', train_images_bin.shape)
+    print('Test images shape:', test_images_bin.shape)
+    print('Train labels shape:', train_labels_bin.shape)
+    print('Test labels shape:', test_labels_bin.shape)
 
     return (train_images_bin, train_labels_bin), (test_images_bin, test_labels_bin)

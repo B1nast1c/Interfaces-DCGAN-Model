@@ -54,7 +54,7 @@ def load_dataset():
 
 
 def save_data(data, filename):
-    np.save(f"{common.IMAGES_LOCATION}{filename}.npy",
+    np.save(f"{common.BIN_DATA_LOCATION}{filename}.npy",
             data, allow_pickle=True)
 
 
