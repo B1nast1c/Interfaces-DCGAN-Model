@@ -8,12 +8,6 @@ IMG_DIR_PATH = common.IMAGES_LOCATION
 test_size = 0.25
 
 
-@tf.function
-def normalization(tensor):
-    tensor = tf.subtract(tf.divide(tensor, 127.5), 1)
-    return tensor
-
-
 def shuffle_data(x_train, y_train):
     train_dataset = data.Dataset.from_tensor_slices((x_train, y_train)).shuffle(
         common.BUFFER_SIZE).batch(common.BATCH_SIZE)
@@ -40,14 +34,15 @@ def split_dataset():
     test_labels_bin = np.array(test_labels_bin)
     train_labels_bin = np.array(train_labels_bin)
 
-    save_dataset(test_images_bin, 'images_test.npy')
-    save_dataset(train_images_bin, 'images_train.npy')
-    save_dataset(train_labels_bin, 'labels_train.npy')
-    save_dataset(test_labels_bin, 'labels_test.npy')
+    train_images_bin = train_images_bin.astype('float32')
+    train_images_bin = (train_images_bin - 127.5) / 127.5
 
-    print('Train images shape:', train_images_bin.shape)
+    save_dataset(test_images_bin, 'images_test')
+    save_dataset(train_images_bin, 'images_train')
+    save_dataset(train_labels_bin, 'labels_train')
+    save_dataset(test_labels_bin, 'labels_test')
+
+    '''print('Train images shape:', train_images_bin.shape)
     print('Test images shape:', test_images_bin.shape)
     print('Train labels shape:', train_labels_bin.shape)
-    print('Test labels shape:', test_labels_bin.shape)
-
-    return (train_images_bin, train_labels_bin), (test_images_bin, test_labels_bin)
+    print('Test labels shape:', test_labels_bin.shape)'''

@@ -6,9 +6,12 @@ from keras.layers import Input, Embedding, Reshape, Concatenate, ReLU, BatchNorm
 con_label = Input(shape=(1,))
 latent_vector = Input(shape=(100,))
 
+# Solamente para el embedding
 
-def label_conditioned_generator(n_classes=len(common.BASE_CLASS), embedding_dim=100):
+
+def label_conditioned_generator(n_classes=len(common.LABELS_LIST), embedding_dim=100):
     label_embedding = Embedding(n_classes, embedding_dim)(con_label)
+    # Como es solamente el embedding, se hacen capas de muy baja reoslución pues solamente se actúa con una label
     nodes = 4 * 4
     label_dense = Dense(nodes)(label_embedding)
 
@@ -28,36 +31,39 @@ def latent_input(latent_dim=100):
 def gan_generator():
     label_output = label_conditioned_generator()
     latent_vector_output = latent_input()
+    # Representación del tamaño  [4, 4, 513]
     merge = Concatenate()([latent_vector_output, label_output])
 
+    # Estrructura similar a un decoder, que se encargan del upsampling la capa de merge a la imagen de salida
+    # El upsampling se hace en factor de 2  / DUPLICAR hasta llegar a las dimensiones deseadas
     x = Conv2DTranspose(64 * 8, kernel_size=4, strides=2, padding='same', kernel_initializer=RandomNormal(
         mean=0.0, stddev=0.02), use_bias=False, name='conv_transpose_1')(merge)
-    x = BatchNormalization(
-        momentum=0.1,  epsilon=0.8, center=1.0, scale=0.02, name='bn_1')(x)
+    x = BatchNormalization(momentum=0.1, epsilon=0.8,
+                           center=1.0, scale=0.02, name='bn_1')(x)
     x = ReLU(name='relu_1')(x)
 
     x = Conv2DTranspose(64 * 4, kernel_size=4, strides=2, padding='same', kernel_initializer=RandomNormal(
         mean=0.0, stddev=0.02), use_bias=False, name='conv_transpose_2')(x)
-    x = BatchNormalization(
-        momentum=0.1,  epsilon=0.8, center=1.0, scale=0.02, name='bn_2')(x)
+    x = BatchNormalization(momentum=0.1, epsilon=0.8,
+                           center=1.0, scale=0.02, name='bn_2')(x)
     x = ReLU(name='relu_2')(x)
 
-    x = Conv2DTranspose(64 * 2, 4, 2, padding='same', kernel_initializer=RandomNormal(
+    x = Conv2DTranspose(64 * 2, kernel_size=4, strides=2, padding='same', kernel_initializer=RandomNormal(
         mean=0.0, stddev=0.02), use_bias=False, name='conv_transpose_3')(x)
-    x = BatchNormalization(
-        momentum=0.1,  epsilon=0.8,  center=1.0, scale=0.02, name='bn_3')(x)
+    x = BatchNormalization(momentum=0.1, epsilon=0.8,
+                           center=1.0, scale=0.02, name='bn_3')(x)
     x = ReLU(name='relu_3')(x)
 
-    x = Conv2DTranspose(64 * 1, 4, 2, padding='same', kernel_initializer=RandomNormal(
+    x = Conv2DTranspose(64 * 1, kernel_size=4, strides=2, padding='same', kernel_initializer=RandomNormal(
         mean=0.0, stddev=0.02), use_bias=False, name='conv_transpose_4')(x)
-    x = BatchNormalization(
-        momentum=0.1,  epsilon=0.8,  center=1.0, scale=0.02, name='bn_4')(x)
+    x = BatchNormalization(momentum=0.1, epsilon=0.8,
+                           center=1.0, scale=0.02, name='bn_4')(x)
     x = ReLU(name='relu_4')(x)
 
-    out_layer = Conv2DTranspose(3, 4, 2, padding='same', kernel_initializer=RandomNormal(
-        mean=0.0, stddev=0.02), use_bias=False, activation='tanh', name='conv_transpose_6')(x)
+    # Para imágenes de 128x128
+    x = Conv2DTranspose(3, kernel_size=4, strides=2, padding='same', kernel_initializer=RandomNormal(
+        mean=0.0, stddev=0.02), use_bias=False, activation='tanh', name='conv_transpose_5')(x)
 
-    model = Model(
-        [latent_vector,  con_label], out_layer)
-
+    # define model
+    model = Model([latent_vector,  con_label], x)
     return model

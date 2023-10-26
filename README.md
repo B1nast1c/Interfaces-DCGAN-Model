@@ -7,4 +7,3 @@ Don't forget to stan NewJeans, Twice, Lesserafim, Red Velvet girlies <3
 
 TODO:
 - Entrenar e Implementar métricas de evaluación
-- Búsqueda de labels correspondientes a una entrada personalizada

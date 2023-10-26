@@ -4,10 +4,10 @@ from keras.initializers import RandomNormal
 from keras.layers import Input, Embedding, Dense, Reshape, Concatenate, LeakyReLU, Conv2D, BatchNormalization, Dropout, Flatten
 
 con_label = Input(shape=(1,))
-inp_img = Input(shape=(128, 128, 3))
+inp_img = Input(shape=(common.DIMENSION, common.DIMENSION, 3))
 
 
-def label_condition_disc(in_shape=(128, 128, 3), n_classes=len(common.BASE_CLASS), embedding_dim=100):
+def label_condition_disc(in_shape=(common.DIMENSION, common.DIMENSION, 3), n_classes=len(common.LABELS_LIST), embedding_dim=100):
     con_label = Input(shape=(1,))
     label_embedding = Embedding(n_classes, embedding_dim)(con_label)
 
@@ -20,7 +20,7 @@ def label_condition_disc(in_shape=(128, 128, 3), n_classes=len(common.BASE_CLASS
     return con_label, label_reshape_layer
 
 
-def image_disc(in_shape=(128, 128, 3)):
+def image_disc(in_shape=(common.DIMENSION, common.DIMENSION, 3)):
     inp_image = Input(shape=in_shape)
     return inp_image
 
@@ -29,26 +29,26 @@ def gan_discriminator():
     con_label, label_condition_output = label_condition_disc()
     inp_image_output = image_disc()
 
-    # Concatenar label -> channel
+    # Concatenar label -> channel (common.DIMENSION, common.DIMENSION, 6)
     merge = Concatenate()([inp_image_output, label_condition_output])
 
     x = Conv2D(64, kernel_size=4, strides=2, padding='same', kernel_initializer=RandomNormal(
         mean=0.0, stddev=0.02), use_bias=False, name='conv_1')(merge)
     x = LeakyReLU(0.2, name='leaky_relu_1')(x)
 
-    x = Conv2D(64 * 2, kernel_size=4, strides=3, padding='same', kernel_initializer=RandomNormal(
+    x = Conv2D(64 * 2, kernel_size=4, strides=4, padding='same', kernel_initializer=RandomNormal(
         mean=0.0, stddev=0.02), use_bias=False, name='conv_2')(x)
     x = BatchNormalization(momentum=0.1,  epsilon=0.8,
                            center=1.0, scale=0.02, name='bn_1')(x)
     x = LeakyReLU(0.2, name='leaky_relu_2')(x)
 
-    x = Conv2D(64 * 4, 4, 3, padding='same', kernel_initializer=RandomNormal(
+    x = Conv2D(64 * 4, 4, 2, padding='same', kernel_initializer=RandomNormal(
         mean=0.0, stddev=0.02), use_bias=False, name='conv_3')(x)
     x = BatchNormalization(momentum=0.1,  epsilon=0.8,
                            center=1.0, scale=0.02, name='bn_2')(x)
     x = LeakyReLU(0.2, name='leaky_relu_3')(x)
 
-    x = Conv2D(64 * 8, 4, 3, padding='same', kernel_initializer=RandomNormal(
+    x = Conv2D(64 * 8, 4, 2, padding='same', kernel_initializer=RandomNormal(
         mean=0.0, stddev=0.02), use_bias=False, name='conv_5')(x)
     x = BatchNormalization(momentum=0.1,  epsilon=0.8,
                            center=1.0, scale=0.02, name='bn_4')(x)

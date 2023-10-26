@@ -19,10 +19,10 @@ def load_dataset():
         try:
             np_image = cv2.imread(f"{common.IMAGES_LOCATION}{image}.png")
             height, width, _ = np_image.shape
-            new_width = int((160 / height) * width)
-            np_image = cv2.resize(np_image, (new_width, 160),
+            new_width = int((common.DIMENSION / height) * width)
+            np_image = cv2.resize(np_image, (new_width, common.DIMENSION),
                                   interpolation=cv2.INTER_LINEAR)
-            new_size = (160, 160)
+            new_size = (common.DIMENSION, common.DIMENSION)
 
             # Crear una nueva imagen en blanco del tamaño deseado
             resized_image = np.full(
@@ -33,7 +33,7 @@ def load_dataset():
             y_offset = 0
 
             # Pegar la imagen original en el centro de la imagen en blanco
-            resized_image[y_offset:y_offset + 160,
+            resized_image[y_offset:y_offset + common.DIMENSION,
                           x_offset:x_offset + new_width] = np_image
             np_images.append(resized_image)
 

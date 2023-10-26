@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from model import generator, discriminator
 from keras.losses import BinaryCrossentropy
 from keras.optimizers import Adam
-from utils import common
+from utils import common, split_data
 
 # PARAMETROS
 # ----------------------------------------------------------------
@@ -17,6 +17,15 @@ generator_optimizer = Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.999)
 discriminator_optimizer = Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.999)
 seed = tf.random.normal([num_examples_to_generate, common.LATENT_DIM])
 binary_cross_entropy = BinaryCrossentropy()
+
+
+def print_inputs_outputs():
+    '''print(conditional_gen.input)
+    print(conditional_disc.input)
+    print(conditional_gen.output)
+    print(conditional_disc.output)'''
+
+    print(seed.shape)
 
 
 def generator_loss(label, fake_output):
@@ -77,19 +86,26 @@ def train_step(images, target):
 
 
 def generate_and_save_images(model, epoch, test_input):
-    labels = label_gen(n_classes=len(common.BASE_CLASS))
+    labels = label_gen(n_classes=len(common.LABELS_LIST))
     predictions = model([test_input, labels], training=False)
-    # fig = plt.figure(figsize=(8, 8))
+    fig = plt.figure(figsize=(8, 2))
 
+    print("Generated Images are Conditioned on Label:",
+          common.class_map[np.array(labels)[0]])
     for i in range(predictions.shape[0]):
         pred = (predictions[i, :, :, :] + 1) * 127.5
         pred = np.array(pred)
+        plt.subplot(1, 5, i+1)
+        plt.imshow(pred.astype(np.uint8), cmap='gray')
+        plt.axis('off')
 
     plt.savefig(common.IMAGE_EPOCHS_LOCATION +
                 '/image_at_epoch_{:d}.png'.format(epoch))
 
 
 def train(dataset, epochs):
+    print('Iniciando entrenamiento...')
+
     for epoch in range(epochs):
         start = time.time()
         i = 0

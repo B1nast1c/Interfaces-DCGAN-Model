@@ -12,12 +12,14 @@ RESULTS_LOCATION = './model/results'  # Resultados del testing
 
 labels_file_df = pd.read_csv(LABELS_LOCATION)
 LABELS_LIST = set(labels_file_df['topic'].values.tolist())
+class_map = {}
+for index in range(len(LABELS_LIST)):
+    class_map[index] = list(LABELS_LIST)[index]
 
-GENERATOR_RES_FACTOR = 4  # (1=32, 2=64, 3=96, 4=128 ...)
-GENERATE_SQUARE = 32 * GENERATOR_RES_FACTOR
 CHANNELS = 3
 LATENT_DIM = 100  # Parte del vector latente + RUIDO
 EMBED_SIZE = 100
-EPOCHS = 200
-BATCH_SIZE = 16
-BUFFER_SIZE = 10000
+EPOCHS = 10
+BATCH_SIZE = 32
+BUFFER_SIZE = 1000
+DIMENSION = 128
