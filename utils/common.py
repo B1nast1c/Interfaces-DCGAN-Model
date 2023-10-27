@@ -9,6 +9,7 @@ EPOCHS_LOCATION = './model/weights_train'
 # Guardar imagen luego de cada epoch
 IMAGE_EPOCHS_LOCATION = './model/epoch_images'
 RESULTS_LOCATION = './model/results'  # Resultados del testing
+BACKUP_WEIGHTS = './model/backup_weights/'
 
 labels_file_df = pd.read_csv(LABELS_LOCATION)
 LABELS_LIST = set(labels_file_df['topic'].values.tolist())
@@ -19,7 +20,7 @@ for index in range(len(LABELS_LIST)):
 CHANNELS = 3
 LATENT_DIM = 100  # Parte del vector latente + RUIDO
 EMBED_SIZE = 100
-EPOCHS = 10
-BATCH_SIZE = 32
+EPOCHS = 200
+BATCH_SIZE = 64
 BUFFER_SIZE = 1000
 DIMENSION = 128

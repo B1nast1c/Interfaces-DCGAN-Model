@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from model import generator, discriminator
 from keras.losses import BinaryCrossentropy
 from keras.optimizers import Adam
-from utils import common, split_data
+from utils import common
 
 # PARAMETROS
 # ----------------------------------------------------------------
