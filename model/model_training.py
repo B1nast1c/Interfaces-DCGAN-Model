@@ -1,10 +1,11 @@
+"""Entrenamiento del modelo generativo"""
 import time
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from model import generator, discriminator
 from keras.losses import BinaryCrossentropy
 from keras.optimizers import Adam
+from model import generator, discriminator
 from utils import common
 
 # PARAMETROS
@@ -12,10 +13,10 @@ from utils import common
 
 conditional_gen = generator.gan_generator()
 conditional_disc = discriminator.gan_discriminator()
-num_examples_to_generate = 5
+NUM_EXAMPLES_TO_GENERATE = 5
 generator_optimizer = Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.999)
 discriminator_optimizer = Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.999)
-seed = tf.random.normal([num_examples_to_generate, common.LATENT_DIM])
+seed = tf.random.normal([NUM_EXAMPLES_TO_GENERATE, common.LATENT_DIM])
 binary_cross_entropy = BinaryCrossentropy()
 
 
@@ -29,11 +30,33 @@ def print_inputs_outputs():
 
 
 def generator_loss(label, fake_output):
+    """
+    Calcula la pérdida del generador.
+
+    Parameters:
+        label: Las etiquetas reales.
+        fake_output: Salida falsa del discriminador.
+
+    Returns:
+        gen_loss: La pérdida del generador.
+    """
+
     gen_loss = binary_cross_entropy(label, fake_output)
     return gen_loss
 
 
 def discriminator_loss(label, output):
+    """
+    Calcula la pérdida del discriminador.
+
+    Parameters:
+        label: Las etiquetas reales o falsas.
+        output: Salida del discriminador.
+
+    Returns:
+        disc_loss: La pérdida del discriminador.
+    """
+
     disc_loss = binary_cross_entropy(label, output)
     return disc_loss
 
@@ -42,6 +65,17 @@ def discriminator_loss(label, output):
 
 @tf.function
 def train_step(images, target):
+    """
+    Realiza un paso de entrenamiento.
+
+    Parameters:
+        images: Imágenes reales.
+        target: Objetivos o etiquetas para las imágenes.
+
+    Returns:
+        None
+    """
+
     noise = tf.random.normal([target.shape[0], common.LATENT_DIM])
 
     with tf.GradientTape() as disc_tape1:
@@ -86,9 +120,20 @@ def train_step(images, target):
 
 
 def generate_and_save_images(model, epoch, test_input):
+    """
+    Realiza el entrenamiento del modelo generativo condicional.
+
+    Parameters:
+        dataset: Conjunto de datos de entrenamiento.
+        epochs: Número de épocas de entrenamiento.
+
+    Returns:
+        None
+    """
+
     labels = label_gen(n_classes=len(common.LABELS_LIST))
     predictions = model([test_input, labels], training=False)
-    fig = plt.figure(figsize=(8, 2))
+    plt.figure(figsize=(8, 2))
 
     print("Generated Images are Conditioned on Label:",
           common.class_map[np.array(labels)[0]])
@@ -104,6 +149,17 @@ def generate_and_save_images(model, epoch, test_input):
 
 
 def train(dataset, epochs):
+    """
+    Realiza el entrenamiento del modelo generativo condicional.
+
+    Parameters:
+        dataset: Conjunto de datos de entrenamiento.
+        epochs: Número de épocas de entrenamiento.
+
+    Returns:
+        None
+    """
+
     print('Iniciando entrenamiento...')
 
     for epoch in range(epochs):
@@ -127,6 +183,16 @@ def train(dataset, epochs):
 
 
 def label_gen(n_classes):
+    """
+    Genera una etiqueta aleatoria a partir del número de clases.
+
+    Parameters:
+        n_classes: Número de clases posibles.
+
+    Returns:
+        lab: Etiqueta generada.
+    """
+
     lab = tf.random.uniform((1,), minval=0, maxval=n_classes,
                             dtype=tf.dtypes.int32, seed=None, name=None)
-    return tf.repeat(lab, [num_examples_to_generate], axis=None, name=None)
+    return tf.repeat(lab, [NUM_EXAMPLES_TO_GENERATE], axis=None, name=None)

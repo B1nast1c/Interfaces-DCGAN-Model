@@ -1,7 +1,8 @@
-from utils import common
+"""Generador"""
 from keras.models import Model
 from keras.initializers import RandomNormal
-from keras.layers import Input, Embedding, Reshape, Concatenate, ReLU, BatchNormalization, Conv2DTranspose, Dense, ReLU
+from keras.layers import Input, Embedding, Reshape, Concatenate, ReLU, BatchNormalization, Conv2DTranspose, Dense
+from utils import common
 
 con_label = Input(shape=(1,))
 latent_vector = Input(shape=(100,))
@@ -20,7 +21,15 @@ def label_conditioned_generator(n_classes=len(common.LABELS_LIST), embedding_dim
     return label_reshape_layer
 
 
-def latent_input(latent_dim=100):
+def latent_input():
+    """
+    Crea la capa de condición para el discriminador.
+    Toma la forma de entrada, el número de clases y la dimensión del embedding.
+    Devuelve la capa de entrada de etiqueta y la capa de condición.
+
+    def image_disc(in_shape=(common.DIMENSION, common.DIMENSION, 3)):
+    """
+
     nodes = 512 * 4 * 4
     latent_dense = Dense(nodes)(latent_vector)
     latent_dense = ReLU()(latent_dense)
@@ -29,12 +38,18 @@ def latent_input(latent_dim=100):
 
 
 def gan_generator():
+    """
+    Crea y compila el modelo del discriminador.
+    No recibe argumentos directos.
+    Devuelve el modelo del discriminador.
+    """
+
     label_output = label_conditioned_generator()
     latent_vector_output = latent_input()
     # Representación del tamaño  [4, 4, 513]
     merge = Concatenate()([latent_vector_output, label_output])
 
-    # Estrructura similar a un decoder, que se encargan del upsampling la capa de merge a la imagen de salida
+    # upsampling la capa de merge a la imagen de salida
     # El upsampling se hace en factor de 2  / DUPLICAR hasta llegar a las dimensiones deseadas
     x = Conv2DTranspose(64 * 8, kernel_size=4, strides=2, padding='same', kernel_initializer=RandomNormal(
         mean=0.0, stddev=0.02), use_bias=False, name='conv_transpose_1')(merge)

@@ -1,3 +1,4 @@
+"""Elementos comunes"""
 import pandas as pd
 
 GAN_MODEL_LOCATION = './model/config'
