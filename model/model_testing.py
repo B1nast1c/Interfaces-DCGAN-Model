@@ -3,7 +3,6 @@ import numpy as np
 import tensorflow as tf
 from numpy.random import randn
 import matplotlib.pyplot as plt
-from matplotlib import gridspec
 from model import generator, discriminator
 from utils import common
 
@@ -12,12 +11,11 @@ conditional_disc = discriminator.gan_discriminator()
 conditional_gen.load_weights(common.BACKUP_WEIGHTS + 'gen_199.keras')
 conditional_disc.load_weights(common.BACKUP_WEIGHTS + 'disc_199.keras')
 
-nrow = len(common.LABELS_LIST)
-ncol = len(common.LABELS_LIST)
-fig = plt.figure(figsize=(5, 5))
-gs = gridspec.GridSpec(nrow, ncol, width_ratios=[1] * len(common.LABELS_LIST),
-                       wspace=0.0, hspace=0.0, top=0.95, bottom=0.05, left=0.17, right=0.845)
+NROW = 4
+NCOL = 5
+fig = plt.figure(figsize=(5, 20))
 
+num_classes = len(common.LABELS_LIST)
 # Interpolación
 
 
@@ -54,28 +52,29 @@ def test_model():
     No recibe argumentos directos.
     No devuelve valores.
     """
-    k = 0
-    pts = generate_latent_points(100, 2)
-    interpolated = interpolate_points(pts[0], pts[1])
-    output = None
 
-    for label in range(len(common.LABELS_LIST)):
-        labels = tf.ones(len(common.LABELS_LIST)) * label
-        predictions = conditional_gen([interpolated, labels], training=False)
-        if output is None:
-            output = predictions
-        else:
-            output = np.concatenate((output, predictions))
+    for label in range(num_classes):
+        row = label // NCOL
+        col = label % NCOL
 
-    for i in range(len(common.LABELS_LIST)):
-        for j in range(len(common.LABELS_LIST)):
-            pred = (output[k, :, :, :] + 1) * 127.5
-            ax = plt.subplot(gs[i, j])
-            pred = np.array(pred)
-            ax.imshow(pred.astype(np.uint8), cmap='gray')
-            ax.set_xticklabels([])
-            ax.set_yticklabels([])
-            ax.axis('off')
-            k += 1
+        latent_point = generate_latent_points(100,  1)
+        # Crear una etiqueta para la clase actual
+        labels = tf.constant([label], dtype=tf.int32)
+
+        # Generar una imagen condicional para la clase actual
+        generated_image = conditional_gen(
+            [latent_point, labels], training=False)
+
+        # Preprocesar la imagen generada
+        generated_image = (generated_image[0, :, :, :] + 1) * 127.5
+        generated_image = generated_image.numpy().astype(np.uint8)
+
+        # Crear una subtrama para mostrar la imagen
+        # Posición en la cuadrícula
+        ax = fig.add_subplot(NROW, NCOL, row * NCOL + col + 1)
+        ax.imshow(generated_image, cmap='gray')
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.axis('off')
 
     plt.show()

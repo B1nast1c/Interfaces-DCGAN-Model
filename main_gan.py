@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from utils import process_dataset, split_data, load_bin, common
 from model import generator, discriminator, model_training, model_testing
 
-
+'''
 # Procesamiento de datos (V2) - EJECUTAR AL FINAL DEL PROCESAMIENTO
 process_dataset.process_dataset()
 # ----------------------------------------------------------------------------
@@ -34,6 +34,7 @@ print(discriminator.gan_discriminator().summary())
 # Entrenamiento
 model_training.print_inputs_outputs()
 model_training.train(train_dataset, common.EPOCHS)
+'''
 
 # Testing
 model_testing.test_model()
