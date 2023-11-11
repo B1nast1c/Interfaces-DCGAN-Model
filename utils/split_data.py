@@ -42,7 +42,7 @@ def save_dataset(dataset, filename):
 
 def split_dataset():
     """
-    Esta función divide el conjunto de datos en datos de entrenamiento y prueba, preprocesa los datos y guarda los datos en archivos binarios.
+    Esta función divide el conjunto de datos en datos de entrenamiento y prueba
 
     Returns:
         None

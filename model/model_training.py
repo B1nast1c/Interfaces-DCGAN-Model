@@ -29,7 +29,7 @@ def print_inputs_outputs():
     print(seed.shape)
 
 
-def generator_loss(label, fake_output):
+def generator_loss(fake_output):
     """
     Calcula la pérdida del generador.
 
@@ -40,12 +40,12 @@ def generator_loss(label, fake_output):
     Returns:
         gen_loss: La pérdida del generador.
     """
-
+    label = tf.ones_like(fake_output)
     gen_loss = binary_cross_entropy(label, fake_output)
     return gen_loss
 
 
-def discriminator_loss(label, output):
+def discriminator_loss(real_output, fake_output):
     """
     Calcula la pérdida del discriminador.
 
@@ -56,9 +56,12 @@ def discriminator_loss(label, output):
     Returns:
         disc_loss: La pérdida del discriminador.
     """
+    real_loss = binary_cross_entropy(
+        tf.ones_like(real_output)*0.9, real_output)
+    fake_loss = binary_cross_entropy(tf.zeros_like(fake_output), fake_output)
 
-    disc_loss = binary_cross_entropy(label, output)
-    return disc_loss
+    total_loss = real_loss + fake_loss
+    return total_loss
 
 # ----------------------------------------------------------------
 
@@ -78,45 +81,29 @@ def train_step(images, target):
 
     noise = tf.random.normal([target.shape[0], common.LATENT_DIM])
 
-    with tf.GradientTape() as disc_tape1:
+    with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
         generated_images = conditional_gen([noise, target], training=True)
+
         real_output = conditional_disc([images, target], training=True)
-        real_targets = tf.ones_like(real_output)
-        disc_loss1 = discriminator_loss(real_targets, real_output)
-
-    # Calculo de las gradientes para las etiquetas reales
-    gradients_of_disc1 = disc_tape1.gradient(
-        disc_loss1, conditional_disc.trainable_variables)
-
-    # parameters optimization for discriminator for real labels
-    discriminator_optimizer.apply_gradients(
-        zip(gradients_of_disc1, conditional_disc.trainable_variables))
-
-    # Entrenar discriminador con etiquetas erróneas
-    with tf.GradientTape() as disc_tape2:
         fake_output = conditional_disc(
             [generated_images, target], training=True)
-        fake_targets = tf.zeros_like(fake_output)
-        disc_loss2 = discriminator_loss(fake_targets, fake_output)
 
-    gradients_of_disc2 = disc_tape2.gradient(
-        disc_loss2, conditional_disc.trainable_variables)
+        gen_loss = generator_loss(fake_output)
+        disc_loss = discriminator_loss(real_output, fake_output)
 
-    discriminator_optimizer.apply_gradients(zip(gradients_of_disc2,
-                                                conditional_disc.trainable_variables))
+        # Calculo de las gradientes para las etiquetas reales
+        gradients_of_gen = gen_tape.gradient(
+            gen_loss, conditional_gen.trainable_variables)
+        gradients_of_disc = disc_tape.gradient(
+            disc_loss, conditional_disc.trainable_variables)
 
+        generator_optimizer.apply_gradients(
+            zip(gradients_of_gen, conditional_gen.trainable_variables))
+        discriminator_optimizer.apply_gradients(
+            zip(gradients_of_disc, conditional_disc.trainable_variables))
+
+        return gen_loss, disc_loss
     # Entrenar discriminador con etiquetas reales
-    with tf.GradientTape() as gen_tape:
-        generated_images = conditional_gen([noise, target], training=True)
-        fake_output = conditional_disc(
-            [generated_images, target], training=True)
-        real_targets = tf.ones_like(fake_output)
-        gen_loss = generator_loss(real_targets, fake_output)
-
-    gradients_of_gen = gen_tape.gradient(
-        gen_loss, conditional_gen.trainable_variables)
-    generator_optimizer.apply_gradients(zip(gradients_of_gen,
-                                            conditional_gen.trainable_variables))
 
 
 def generate_and_save_images(model, epoch, test_input):
@@ -144,8 +131,7 @@ def generate_and_save_images(model, epoch, test_input):
         plt.imshow(pred.astype(np.uint8), cmap='gray')
         plt.axis('off')
 
-    plt.savefig(common.IMAGE_EPOCHS_LOCATION +
-                '/image_at_epoch_{:d}.png'.format(epoch))
+    plt.savefig(f'{common.IMAGE_EPOCHS_LOCATION}/image_at_epoch_{epoch}.png')
 
 
 def train(dataset, epochs):
@@ -165,19 +151,22 @@ def train(dataset, epochs):
     for epoch in range(epochs):
         start = time.time()
         i = 0
-        # D_loss_list, G_loss_list = [], []
+        d_loss_list, g_loss_list = [], []
         for image_batch, target in dataset:
             i += 1
-            train_step(image_batch, target)
-        print(epoch)
-        generate_and_save_images(conditional_gen, epoch + 1, seed)
+            gen_loss, disc_loss = train_step(image_batch, target)
+            d_loss_list.append(disc_loss)
+            g_loss_list.append(gen_loss)
 
-        conditional_gen.save_weights(
-            common.EPOCHS_LOCATION + '/gen_' + str(epoch)+'.keras')
-        conditional_disc.save_weights(
-            common.EPOCHS_LOCATION + '/disc_' + str(epoch)+'.keras')
-        print('Time for epoch {} is {} sec'.format(
-            epoch + 1, time.time()-start))
+        if epoch == 49 or epoch == 99 or epoch == 149 or epoch == 199 or epoch == 249 or epoch == 299:
+            generate_and_save_images(conditional_gen, epoch + 1, seed)
+            conditional_gen.save(common.EPOCHS_LOCATION +
+                                 '/gen_' + str(epoch)+'.h5')
+            conditional_disc.save(
+                common.EPOCHS_LOCATION + '/disc_' + str(epoch)+'.h5')
+
+            print(f'Saved in {common.EPOCHS_LOCATION}')
+        print(f'Time for epoch {epoch + 1} is {time.time() - start} sec')
 
     generate_and_save_images(conditional_gen, epochs, seed)
 
