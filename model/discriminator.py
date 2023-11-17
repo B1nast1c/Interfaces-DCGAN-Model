@@ -1,14 +1,20 @@
 """Discriminador"""
 from keras.models import Model
 from keras.initializers import RandomNormal
-from keras.layers import Input, Embedding, Dense, Reshape, Concatenate, LeakyReLU, Conv2D, BatchNormalization, Dropout, Flatten
+from keras.layers import Input, Embedding, \
+    Dense, Reshape, Concatenate, LeakyReLU, Conv2D, \
+    BatchNormalization, Dropout, Flatten
 from utils import common
 
 con_label = Input(shape=(1,))
 inp_img = Input(shape=(common.DIMENSION, common.DIMENSION, 3))
 
 
-def label_condition_disc(in_shape=(common.DIMENSION, common.DIMENSION, 3), n_classes=len(common.LABELS_LIST), embedding_dim=100):
+def label_condition_disc(in_shape=(common.DIMENSION, common.DIMENSION, 3),
+                         n_classes=len(common.LABELS_LIST), embedding_dim=100):
+    """
+    Labels condicionales -> Grande Jimin
+    """
     con_label_disc = Input(shape=(1,))
     label_embedding = Embedding(n_classes, embedding_dim)(con_label_disc)
 

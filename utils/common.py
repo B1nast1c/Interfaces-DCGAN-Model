@@ -14,9 +14,9 @@ BACKUP_WEIGHTS = './model/backup_weights/'
 
 labels_file_df = pd.read_csv(LABELS_LOCATION)
 LABELS_LIST = set(labels_file_df['topic'].values.tolist())
-class_map = {}
+CLASS_MAP = {}
 for index in range(len(LABELS_LIST)):
-    class_map[index] = list(LABELS_LIST)[index]
+    CLASS_MAP[index] = list(LABELS_LIST)[index]
 
 CHANNELS = 3
 LATENT_DIM = 100  # Parte del vector latente + RUIDO

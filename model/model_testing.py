@@ -1,80 +1,40 @@
 """Testing del modelo generativo"""
 import numpy as np
 import tensorflow as tf
-from numpy.random import randn
-import matplotlib.pyplot as plt
-from model import generator, discriminator
-from utils import common
+from keras.models import load_model
+from utils import common, process_dataset
 
-conditional_gen = generator.gan_generator()
-conditional_disc = discriminator.gan_discriminator()
-conditional_gen.load_weights(common.BACKUP_WEIGHTS + 'gen_199.keras')
-conditional_disc.load_weights(common.BACKUP_WEIGHTS + 'disc_199.keras')
-
-NROW = 4
-NCOL = 5
-fig = plt.figure(figsize=(5, 20))
-
-num_classes = len(common.LABELS_LIST)
-# Interpolación
+conditional_gen = load_model(common.BACKUP_WEIGHTS + 'gen_299.h5')
 
 
-def generate_latent_points(latent_dim, n_samples):
+def generate(text_label):
     """
-    Genera puntos latentes aleatorios.
-    Recibe la dimensión latente y la cantidad de muestras.
-    Devuelve los puntos latentes generados.
+    Generar imagenes por label
     """
+    name2idx = common.CLASS_MAP
+    label = list(name2idx.keys())[list(name2idx.values()).index(text_label)]
+    label = tf.ones(1) * label
+    noise = tf.random.normal([1, 100])
+    img = np.array(conditional_gen.predict([noise, label]))
+    pred = (img[0, :, :, :] + 1) * 127.5
+    pred = np.array(pred)
+    return pred.astype(np.uint8)
 
-    x_input = randn(latent_dim * n_samples)
-    z_input = x_input.reshape(n_samples, latent_dim)
-    return z_input
 
-
-def interpolate_points(p1, p2, n_steps=len(common.LABELS_LIST)):
+def test():
     """
-    Interpola entre dos puntos.
-    Recibe dos puntos, con un número opcional de pasos.
-    Devuelve los puntos interpolados.
+    Testing del modelo + creacion de archivos
     """
+    test_images = []
+    values = []
 
-    ratios = np.linspace(0, 1, num=n_steps)
-    vectors = list()
-    for ratio in ratios:
-        v = (1.0 - ratio) * p1 + ratio * p2
-        vectors.append(v)
-    return np.asarray(vectors)
+    # Guardado de imagenes de testing en un archiv npy
+    for _, value in common.CLASS_MAP.items():
+        test_image = generate(value)
+        test_images.append(test_image)
+        values.append(value)
 
-
-def test_model():
-    """
-    Prueba el modelo y muestra las imágenes generadas.
-    No recibe argumentos directos.
-    No devuelve valores.
-    """
-
-    for label in range(num_classes):
-        row = label // NCOL
-        col = label % NCOL
-
-        latent_point = generate_latent_points(100,  1)
-        # Crear una etiqueta para la clase actual
-        labels = tf.constant([label], dtype=tf.int32)
-
-        # Generar una imagen condicional para la clase actual
-        generated_image = conditional_gen(
-            [latent_point, labels], training=False)
-
-        # Preprocesar la imagen generada
-        generated_image = (generated_image[0, :, :, :] + 1) * 127.5
-        generated_image = generated_image.numpy().astype(np.uint8)
-
-        # Crear una subtrama para mostrar la imagen
-        # Posición en la cuadrícula
-        ax = fig.add_subplot(NROW, NCOL, row * NCOL + col + 1)
-        ax.imshow(generated_image, cmap='gray')
-        ax.set_xticklabels([])
-        ax.set_yticklabels([])
-        ax.axis('off')
-
-    plt.show()
+    test_images = np.array(test_images)
+    test_labels = np.array(values)
+    process_dataset.save_data(test_images, 'images_generated')
+    process_dataset.save_data(test_labels, 'labels_generated')

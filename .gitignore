@@ -1,11 +1,9 @@
 virtual-env/
 __pycache__/
-files/dataset/
 files/captions/
 model/config/
 model/results/
 model/epoch_images/
 model/train_results/
 model/weights_train/
-model/backup_weights/
 !files/dataset/images/design_topics.csv
