@@ -16,7 +16,7 @@ conditional_disc = discriminator.gan_discriminator()
 NUM_EXAMPLES_TO_GENERATE = 5
 generator_optimizer = Adam(learning_rate=0.0002, beta_1=0.5)
 discriminator_optimizer = Adam(learning_rate=0.0002, beta_1=0.5)
-seed = tf.random.normal([len(common.LABELS_LIST), common.LATENT_DIM])
+seed = tf.random.normal([NUM_EXAMPLES_TO_GENERATE, common.LATENT_DIM])
 binary_cross_entropy = BinaryCrossentropy()
 
 
@@ -167,8 +167,7 @@ def train(dataset, epochs):
             d_loss_list.append(disc_loss)
             g_loss_list.append(gen_loss)
 
-        if epoch == 49 or epoch == 99 or epoch == 149 \
-                or epoch == 199 or epoch == 249 or epoch == 299:
+        if epoch == 10:
             generate_and_save_images(conditional_gen, epoch + 1, seed)
             conditional_gen.save(common.EPOCHS_LOCATION +
                                  '/gen_' + str(epoch)+'.h5')
@@ -191,4 +190,7 @@ def label_gen(n_classes):
     Returns:
         lab: Etiqueta generada.
     """
-    return tf.one_hot(range(n_classes), n_classes)
+
+    lab = tf.random.uniform((1,), minval=0, maxval=n_classes,
+                            dtype=tf.dtypes.int32, seed=None, name=None)
+    return tf.repeat(lab, [NUM_EXAMPLES_TO_GENERATE], axis=None, name=None)
