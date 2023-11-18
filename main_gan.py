@@ -30,11 +30,11 @@ plt.show()'''
 # ----------------------------------------------------------------------------
 
 # Entrenamiento
-model_training.train(train_dataset, common.EPOCHS)
+# model_training.train(train_dataset, common.EPOCHS)
 
 
 # Testing
-model_testing.test()
+# model_testing.test()
 
 # ----------------------------------------------------------------------------
 
