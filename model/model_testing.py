@@ -10,7 +10,7 @@ conditional_gen = load_model(
     common.BACKUP_WEIGHTS + 'gen_499.h5', compile=False)
 
 
-def generate_latent_points(latent_dim, n_samples, n_classes=10):
+def generate_latent_points(latent_dim, n_samples, n_classes=20):
     """
     Puntos latentes de la imagen
     """
@@ -26,12 +26,12 @@ def generate(text_label):
     """
     name2idx = common.CLASS_MAP
     label = list(name2idx.keys())[list(name2idx.values()).index(text_label)]
-    label = tf.ones(1) * label
+    num_label = tf.ones(1) * label
     noise = tf.random.normal([1, 100])
-    img = np.array(conditional_gen.predict([noise, label]))
+    img = np.array(conditional_gen.predict([noise, num_label]))
     pred = (img[0, :, :, :] + 1) * 127.5
     pred = np.array(pred)
-    return pred.astype(np.uint8)
+    return pred.astype(np.uint8), label
 
 
 def test():
@@ -45,9 +45,9 @@ def test():
 
     # Guardado de imagenes de testing en un archiv npy
     for i, value in common.CLASS_MAP.items():
-        test_image = generate(value)
+        test_image, num_val = generate(value)
         test_images.append(test_image)
-        values.append(value)
+        values.append(num_val)
         axs[i].imshow(test_image, cmap='gray')
         axs[i].axis('off')
 

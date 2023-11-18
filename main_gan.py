@@ -41,7 +41,7 @@ plt.show()'''
 # Métricas
 # Métricas -> Modelo Personalizado + ENTRENAR
 metrics.plot_training_metrics()
-metrics.deploy_model()
+# metrics.deploy_model()
 
 # Métricas PERSONALIZADAS EJECUTADAS INCEPTION SCORE
 """n_split = [i for i in range(20)]
