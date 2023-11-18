@@ -10,9 +10,10 @@ from utils import load_bin, common
 
 
 interfaces = load_bin.load_data('images_train')
-labels = load_bin.load_data('labels_train')
+labels = load_bin.load_data('labels_generated')
 normal_labels = common.LABELS_LIST
 cgan_images = load_bin.load_data('images_generated')
+cgan_labels = load_bin.load_data('labels_generated')
 
 
 def metrics_model():
@@ -85,9 +86,8 @@ def plot_training_metrics():
 
 def deploy_model():
     """Deploy del modelo + todas las tareas previas"""
-    plot_training_metrics()
     new_model = load_model(common.BACKUP_WEIGHTS + '/metrics.h5')
-    gen_loss, gen_accuracy = new_model.evaluate(cgan_images, labels)
+    gen_loss, gen_accuracy = new_model.evaluate(cgan_images, cgan_labels)
     print('Accuracy ->', gen_accuracy, 'Loss ->', gen_loss)
 
 

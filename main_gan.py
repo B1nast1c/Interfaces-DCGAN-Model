@@ -1,6 +1,6 @@
 """Script de ejecución principal"""
 from utils import process_dataset, split_data, load_bin, common
-from model import model_training, model_testing, metrics
+from model import model_training, model_testing
 
 # Procesamiento de datos (V2) - EJECUTAR AL FINAL DEL PROCESAMIENTO
 process_dataset.process_dataset()
@@ -34,13 +34,14 @@ plt.show()'''
 
 
 # Testing
-# model_testing.test()
+model_testing.test()
 
 # ----------------------------------------------------------------------------
 
 # Métricas
 # Métricas -> Modelo Personalizado + ENTRENAR
-metrics.deploy_model()
+# metrics.plot_training_metrics()
+# metrics.deploy_model()
 
 # Métricas PERSONALIZADAS EJECUTADAS INCEPTION SCORE
 """n_split = [i for i in range(20)]
