@@ -158,7 +158,7 @@ def train(dataset, epochs):
     d_loss_list, g_loss_list = [], []
     print('Iniciando entrenamiento...')
 
-    for epoch in range(epochs):
+    for epoch in range(epochs+1):
         start = time.time()
         i = 0
         for image_batch, target in dataset:
@@ -167,7 +167,8 @@ def train(dataset, epochs):
             d_loss_list.append(disc_loss)
             g_loss_list.append(gen_loss)
 
-        if (epoch + 1) % 100 == 0:
+        if epoch == 100 or epoch == 200 or epoch == 300 \
+                or epoch == 400 or epoch == 500:
             generate_and_save_images(conditional_gen, epoch + 1, seed)
             conditional_gen.save(common.EPOCHS_LOCATION +
                                  '/gen_' + str(epoch)+'.h5')
