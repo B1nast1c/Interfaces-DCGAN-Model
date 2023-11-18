@@ -4,7 +4,7 @@ from numpy.random import randn, randint
 import tensorflow as tf
 from keras.models import load_model
 import matplotlib.pyplot as plt
-from utils import common
+from utils import common, process_dataset
 
 conditional_gen = load_model(
     common.BACKUP_WEIGHTS + 'gen_499.h5', compile=False)
@@ -52,3 +52,8 @@ def test():
         axs[i].axis('off')
 
     plt.show()
+
+    test_images = np.array(test_images)
+    test_labels = np.array(values)
+    process_dataset.save_data(test_images, 'images_generated')
+    process_dataset.save_data(test_labels, 'labels_generated')
