@@ -21,6 +21,6 @@ for index in range(len(LABELS_LIST)):
 CHANNELS = 3
 LATENT_DIM = 100  # Parte del vector latente + RUIDO
 EPOCHS = 500
-BATCH_SIZE = 128
+BATCH_SIZE = 32
 BUFFER_SIZE = 30000
 DIMENSION = 128

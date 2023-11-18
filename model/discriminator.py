@@ -6,14 +6,11 @@ from keras.layers import Input, Embedding, \
     BatchNormalization, Dropout, Flatten
 from utils import common
 
-con_label = Input(shape=(1,))
-inp_img = Input(shape=(common.DIMENSION, common.DIMENSION, 3))
-
 
 def label_condition_disc(in_shape=(common.DIMENSION, common.DIMENSION, 3),
                          n_classes=len(common.LABELS_LIST), embedding_dim=100):
     """
-    Labels condicionales -> Grande Jimin
+    Labels condicionales
     """
     con_label_disc = Input(shape=(1,))
     label_embedding = Embedding(n_classes, embedding_dim)(con_label_disc)
@@ -57,7 +54,7 @@ def gan_discriminator():
         mean=0.0, stddev=0.02), use_bias=False, name='conv_1')(merge)
     x = LeakyReLU(0.2, name='leaky_relu_1')(x)
 
-    x = Conv2D(64 * 2, kernel_size=4, strides=4, padding='same', kernel_initializer=RandomNormal(
+    x = Conv2D(64 * 2, kernel_size=4, strides=2, padding='same', kernel_initializer=RandomNormal(
         mean=0.0, stddev=0.02), use_bias=False, name='conv_2')(x)
     x = BatchNormalization(momentum=0.1,  epsilon=0.8,
                            center=1.0, scale=0.02, name='bn_1')(x)
@@ -70,9 +67,15 @@ def gan_discriminator():
     x = LeakyReLU(0.2, name='leaky_relu_3')(x)
 
     x = Conv2D(64 * 8, 4, 2, padding='same', kernel_initializer=RandomNormal(
-        mean=0.0, stddev=0.02), use_bias=False, name='conv_5')(x)
+        mean=0.0, stddev=0.02), use_bias=False, name='conv_4')(x)
     x = BatchNormalization(momentum=0.1,  epsilon=0.8,
                            center=1.0, scale=0.02, name='bn_4')(x)
+    x = LeakyReLU(0.2, name='leaky_relu_4')(x)
+
+    x = Conv2D(64 * 16, 4, 2, padding='same', kernel_initializer=RandomNormal(
+        mean=0.0, stddev=0.02), use_bias=False, name='conv_5')(x)
+    x = BatchNormalization(momentum=0.1,  epsilon=0.8,
+                           center=1.0, scale=0.02, name='bn_5')(x)
     x = LeakyReLU(0.2, name='leaky_relu_5')(x)
 
     flattened_out = Flatten()(x)
