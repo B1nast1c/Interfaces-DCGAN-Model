@@ -1,10 +1,23 @@
 """Testing del modelo generativo"""
 import numpy as np
+from numpy.random import randn, randint
 import tensorflow as tf
 from keras.models import load_model
-from utils import common, process_dataset
+import matplotlib.pyplot as plt
+from utils import common
 
-conditional_gen = load_model(common.BACKUP_WEIGHTS + 'gen_299.h5')
+conditional_gen = load_model(
+    common.BACKUP_WEIGHTS + 'gen_499.h5', compile=False)
+
+
+def generate_latent_points(latent_dim, n_samples, n_classes=10):
+    """
+    Puntos latentes de la imagen
+    """
+    x_input = randn(latent_dim * n_samples)
+    z_input = x_input.reshape(n_samples, latent_dim)
+    labels = randint(0, n_classes, n_samples)
+    return [z_input, labels]
 
 
 def generate(text_label):
@@ -27,14 +40,15 @@ def test():
     """
     test_images = []
     values = []
+    _, axs = plt.subplots(5, 4, figsize=(12, 15))
+    axs = axs.flatten()
 
     # Guardado de imagenes de testing en un archiv npy
-    for _, value in common.CLASS_MAP.items():
+    for i, value in common.CLASS_MAP.items():
         test_image = generate(value)
         test_images.append(test_image)
         values.append(value)
+        axs[i].imshow(test_image, cmap='gray')
+        axs[i].axis('off')
 
-    test_images = np.array(test_images)
-    test_labels = np.array(values)
-    process_dataset.save_data(test_images, 'images_generated')
-    process_dataset.save_data(test_labels, 'labels_generated')
+    plt.show()
