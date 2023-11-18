@@ -1,3 +1,5 @@
 virtual-env/
 __pycache__/
+files/dataset/binary/
+!files/dataset/binary/Filler.txt
 !files/dataset/images/design_topics.csv

@@ -10,7 +10,7 @@ from utils import load_bin, common
 
 
 interfaces = load_bin.load_data('images_train')
-labels = load_bin.load_data('labels_generated')
+labels = load_bin.load_data('labels_train')
 normal_labels = common.LABELS_LIST
 cgan_images = load_bin.load_data('images_generated')
 cgan_labels = load_bin.load_data('labels_generated')

@@ -1,17 +1,17 @@
 """Script de ejecución principal"""
 from utils import process_dataset, split_data, load_bin, common
-from model import model_training, model_testing
+from model import model_training, model_testing, metrics
 
 # Procesamiento de datos (V2) - EJECUTAR AL FINAL DEL PROCESAMIENTO
-process_dataset.process_dataset()
+# process_dataset.process_dataset()
 # ----------------------------------------------------------------------------
 
 # Division del dataset + shuffle de la training data
-split_data.split_dataset()
-train_images_bin = load_bin.load_data('images_train')
-train_labels_bin = load_bin.load_data('labels_train')
+# split_data.split_dataset()
+# train_images_bin = load_bin.load_data('images_train')
+# train_labels_bin = load_bin.load_data('labels_train')
 
-train_dataset = split_data.shuffle_data(train_images_bin, train_labels_bin)
+# train_dataset = split_data.shuffle_data(train_images_bin, train_labels_bin)
 
 '''plt.figure(figsize=(10, 10))
 for images, _ in train_dataset.take(1):
@@ -34,14 +34,14 @@ plt.show()'''
 
 
 # Testing
-model_testing.test()
+# model_testing.test()
 
 # ----------------------------------------------------------------------------
 
 # Métricas
 # Métricas -> Modelo Personalizado + ENTRENAR
-# metrics.plot_training_metrics()
-# metrics.deploy_model()
+metrics.plot_training_metrics()
+metrics.deploy_model()
 
 # Métricas PERSONALIZADAS EJECUTADAS INCEPTION SCORE
 """n_split = [i for i in range(20)]
