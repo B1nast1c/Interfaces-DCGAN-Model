@@ -15,9 +15,6 @@ normal_labels = common.LABELS_LIST
 cgan_images = load_bin.load_data('images_generated')
 cgan_labels = load_bin.load_data('labels_generated')
 
-print(labels)
-print(cgan_labels)
-
 
 def metrics_model():
     """Modelo personalizado para las métricas"""

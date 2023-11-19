@@ -9,6 +9,7 @@ con_label = Input(shape=(1,))
 latent_vector = Input(shape=(100,))
 
 # Solamente para el embedding
+# NOTA NOTA SUPER NOTA -> Mejorar el modelo para la tesis FINAL (OBVI)
 
 
 def label_conditioned_generator(n_classes=len(common.LABELS_LIST), embedding_dim=100):
