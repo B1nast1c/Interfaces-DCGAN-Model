@@ -1,9 +1,6 @@
-# GAN para la generación de interfaces
-
-Si es que se quiere ejecutar, de momento y solamente para la tarea de entrenamiento ejecutar el código perteneciente a model_execution.py. Eso es básicamente todo :)
-Eventualmente se irán agregando elementos correspondientes a las implementaciones.
-
-Don't forget to stan NewJeans, Twice, Lesserafim, Red Velvet girlies <3
-
 TODO:
-- Entrenar e Implementar métricas de evaluación
+* Entrenar e Implementar métricas de evaluación (FID)
+* Mejora de la arquitectura
+* Implementar entrenamiento en CUDA
+* Validacion con gente real
+* Posible cambio a Pytorch (En vacaciones)
